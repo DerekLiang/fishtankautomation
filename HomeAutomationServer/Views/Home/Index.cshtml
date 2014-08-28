@@ -1,0 +1,173 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<div ng-app="app" ng-controller="appController" class="ng-cloak">
+    <div class="jumbotron">
+        <svg height="680" width="999" xmlns="http://www.w3.org/2000/svg" xmlns:sd="uri:whatevermakesyouhappy" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <g>
+                <image xlink:href="~/Client/fishtank.jpg" id="svg_1" height="680" width="999" y="0" x="0" />
+            </g>
+            <g>
+
+                <defs>
+                    <path id="testPath" d="M33.858,150.079
+	c11.975-4.27,24.203-7.505,36.886-9.269c36.049-5.015,72.766,0.364,108.379,5.91c40.242,6.267,80.697,9.723,121.433,9.69
+	c36.672-0.03,77.969-1.382,112.804-13.971c16.76-6.057,30.847-15.648,38.949-32.09c15.894-32.258-12.098-67.663-44.498-72.831
+	c-27.709-4.42-63.533,24.213-53.21,54.99c5.929,17.669,29.09,11.549,41.399,5.908" />
+                </defs>
+                <desc>Loading sensor data....</desc>
+                <text ng:if="vm.loading" x="2" y="20%" fill="#765373" font-size="25" font-family="'Lato', sans-serif">
+                    <textPath class="please" xlink:href="#testPath">
+                        Loading sensor data....
+                        <animate attributeName="startOffset" values="0;.5;1" dur="8s" repeatCount="indefinite" keyTimes="0;.5;1" />
+                    </textPath>
+                </text>
+                
+                <text ng:if="!vm.loading && vm.lastUpdatedOnDateTimeStr != ''" xml:space="preserve" text-anchor="middle" font-family="Cursive" font-size="14" id="svg_2" y="43" x="164" stroke-linecap="null" stroke-linejoin="null" stroke-dasharray="null" stroke-width="0" stroke="#000000" fill="#000000">Last Updated : {{ vm.lastUpdatedOnDateTimeStr }}</text>
+                <text ng:if="!vm.loading && vm.pumpDelayToInSeconds > 0" xml:space="preserve" text-anchor="middle" font-family="Cursive" font-size="14" id="svg_3" y="76" x="211" stroke-linecap="null" stroke-linejoin="null" stroke-dasharray="null" stroke-width="0" stroke="#000000" fill="#000000">Pump will start in {{ vm.pumpDelayToInSecondsStr}} seconds</text>
+
+                <rect ng:click="vm.sensorGetLogClicked({id:0,sensorType:3})" ng:if="!vm.loading" stroke="#044cdb" id="svg_10" height="18.03516" width="22.14844" y="531.23442" x="590.82031" stroke-linecap="null" stroke-linejoin="null" stroke-dasharray="null" stroke-width="4"
+                      fill="044cdb" />
+
+                <rect ng:repeat="sensor in vm.sensorInfo"
+                      ng:click="vm.sensorGetLogClicked(sensor)"
+                      ng:if="!vm.loading"
+                      height="18" width="21"
+                      stroke-width="1" stroke="#000000" fill="#FF0000"
+                      ng:attr-x="{{ sensor.coordsXY[0] }}"
+                      ng:attr-y="{{ sensor.coordsXY[1] }}">
+
+                    <animate attributeType="XML"
+                             attributeName="fill"
+                             from="#0000ff" to="#ff0000"
+                             begin="0s" dur=".5s"
+                             fill="freeze"
+                             repeatCount="indefinite" ng-if="sensor.hasError" />
+                </rect>
+
+            </g>
+        </svg>
+
+        <p>
+            <a ng-click="vm.onClickScheduleButton()" class="btn btn-primary btn-large">Pump Schedule &raquo;</a>
+            @if (!string.IsNullOrWhiteSpace(@ViewBag.APIKEY))
+            {
+                <a ng-click="vm.toggleAPIKeyDisplay()" class="btn btn-primary btn-large" ng-if="!vm.showAPIKey">Show API Key</a>
+                <a ng-click="vm.toggleAPIKeyDisplay()" class="btn btn-primary btn-large" ng-if="vm.showAPIKey">Hide API Key</a>
+                <span ng-if="vm.showAPIKey">@ViewBag.APIKEY</span>
+            }
+            else
+            {
+                <div class="alert alert-info" role="alert">You are not login yet. It shows the most recent updated user's data.</div>
+            }
+        </p>
+
+    </div>
+    
+    <script type="text/ng-template" id="sensorLogModal.html">
+        <div class="modal-header">
+            <h3 class="modal-title" ng-if="vm.sensorType == 1">Wet sensor #{{ vm.sensorId}} log :</h3>
+            <h3 class="modal-title" ng-if="vm.sensorType == 2">Dry sensor #{{ vm.sensorId}} log :</h3>
+            <h3 class="modal-title" ng-if="vm.sensorType == 3">Water pump log :</h3>
+        </div>
+        <div class="modal-body">
+            <table class="table table-striped table-bordered table-hover table-condensed unselectable">
+                <tr>
+                    <th>Date/Time Stamp</th>
+                    <th>From Now</th>
+                    <th>For How Long</th>
+                    <th>Sensor State</th>
+                    <th>Result</th>
+                </tr>
+                <tr ng-repeat="l in vm.logs">
+                    <td>{{ l.createdStr }}</td>
+                    <td>{{ l.fromNow }}</td>
+                    <td>{{ l.forHowLongStr }}</td>
+                    <td ng-if="vm.sensorType != 3">{{ l.isConnected ? "Connected" :"Open" }}</td>
+                    <td ng-if="vm.sensorType == 3">{{ l.isConnected ? "On" :"Off" }}</td>
+
+                    <td ng-if="vm.sensorType != 3"  ng-switch="(vm.sensorType == 1 && l.isConnected) || (vm.sensorType == 2 && !l.isConnected )">
+                        <span ng-switch-when="true" class="glyphicon glyphicon-ok"></span>
+                        <span ng-switch-default class="glyphicon glyphicon-warning-sign"></span>
+                    </td>
+                    <td ng-if="vm.sensorType == 3" ng-switch="l.isConnected">
+                        <span ng-switch-when="true" class="glyphicon glyphicon-flash"></span>
+                        <span ng-switch-default class="glyphicon glyphicon-ban-circle"></span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-warning" ng-click="vm.cancel()">Close</button>
+        </div>
+    </script>    
+    
+    <script type="text/ng-template" id="ScheduleModal.html">
+        <div class="modal-header">
+            <h3 class="modal-title">Pump schedule</h3>
+        </div>
+        <div class="modal-body" >
+            <table class="table table-striped table-bordered table-hover table-condensed unselectable timeslottable">
+                <colgroup>
+                    <col width="16%" />
+                    <col ng-repeat="h in vm.header" width="12%"/>
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th>
+                            <div ng-click="vm.onCLickTimeSlotReserseAll()">
+                                &nbsp;
+                            </div>
+                        </th>
+                        <th ng-repeat="day in vm.header | limitTo:5">
+                            <div ng-click="vm.onCLickTimeSlotWeekDay($index)">
+                                {{ day }}
+                            </div>
+                        </th>
+                        <th ng-repeat="day in vm.header | limitTo:-2" class="weekendheader">
+                            <div ng-click="vm.onCLickTimeSlotWeekDay($index+5)">
+                                {{ day }}
+                            </div>
+                        </th>
+                    </tr>
+                </tbody>
+                <tbody>
+                    <tr ng-repeat="r in vm.scheduleTimeSlot">
+                        <td ng-click="vm.onClickTimeSlotHour(r)">{{ $index>11 ? $index-11 : $index + 1 }}{{ $index != 0 ?'':' AM' }} {{ $index != 11 ?'':' (Noon)' }} {{ $index != 12 ?'':' PM' }}</td>
+                        <td ng-repeat="c in r">
+                            <div style="height: 100%; width: 100%;"
+                                 ng-click="vm.onClickTimeSlot(c)"
+                                 ng-class="{pumpon : c.IsOn, pumpoff : !c.IsOn}">&nbsp;</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h4>Legend :</h4>
+            <table class="table table-striped table-bordered table-hover table-condensed unselectable" style="width:20%">
+                <colgroup>
+                    <col width="10%" />
+                    <col width="10%" />
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <td>Off:</td>
+                        <td><div class="pumpoff">&nbsp;</div></td>
+                    </tr>
+                    <tr>
+                        <td>On:</td>
+                        <td><div class="pumpon">&nbsp;</div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="modal-footer" ng-init="vm.isReadOnly=@string.IsNullOrWhiteSpace(@ViewBag.APIKEY).ToString().ToLower()">
+            <button class="btn btn-primary" ng-click="vm.ok()">OK</button>
+            <button class="btn btn-warning" ng-click="vm.cancel()">Cancel</button>
+            <div class="alert alert-info" role="alert" style="float:left;padding:0 5px;" ng-if="vm.isSaving">Saving...</div>
+            <div class="alert alert-danger" role="alert" style="float:left;padding:0 5px;" ng-if="vm.hasError">There was an error occured while saving data.</div>
+        </div>
+    </script>
+</div>
+

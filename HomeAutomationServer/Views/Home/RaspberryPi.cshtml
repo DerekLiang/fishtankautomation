@@ -1,0 +1,118 @@
+﻿@model dynamic
+
+@{
+    ViewBag.Title = "Raspberry Pi Install and Configuration";
+}
+
+
+<div class="row">
+    <div class="col-md-2">
+
+    </div>
+    <div class="col-md-8" role="main">
+        <h3>Dowload the image</h3>    
+        <p>Donwload RASPBIAN image from <a href="http://www.raspberrypi.org/downloads/">Download Raspberry Pi image</a></p>
+        
+        <h3>Prepare the image on a SD card</h3>
+        <p>Following <a href="http://www.raspberrypi.org/documentation/installation/installing-images/windows.md"> installation instructions </a>
+            , as shown in the following screen shot:
+            <img src="~/Client/diskimager.png" />
+        </p>
+        
+        <h3>Check you SD for bad blocks(optional)</h3>
+        <p>It happens sometimes the SD card is bad and cause some unexpected Errors. The following command will check the bad blocks on any device on Linux system. </p>
+        <pre>
+sudo badblocks -vw /dev/sdc #replace sdc with the actual device id
+</pre>
+
+        <h3>Boot up with newly prepared image</h3>
+        <p>
+            Insert the image in the Raspberry Pi SD card slot, connect a monitor, and keyboard. Power up the Raspberry Pi. You should see the start up screen.
+            A menu will popup and you go through all the steps to complete the setup.
+        </p>
+        
+        <h3>Update the stock install</h3>
+        <p> You will have to get your RASPBIAN updated by typing the following command</p>
+        <pre>sudo apt-get update
+sudo apt-get upgrade</pre>
+        
+        <h3>Install Mono Runtime</h3>
+        <p>Issue the following command:</p>
+        <pre>
+sudo apt-get install mono-complete
+</pre>
+        
+        <h3>Configure SAMBA server</h3>
+        <p>Configure the Raspberry Pi to act as Windows file sharing server so that it can be accessed on your Windows machine</p>
+        <pre>
+sudo nano /etc/samba/smb.conf
+</pre>
+        <p>And add the following lines to "Share Definition" section</p>
+        <pre>
+[pihome]
+   comment= Pi Home
+   path=/home/pi
+   browseable=Yes
+   writeable=Yes
+   only guest=no
+   create mask=0777
+   directory mask=0777
+   public=no             
+</pre>
+        <p>Install additional SAMBA server, and setting up Windows file sharing password</p>
+        <pre>
+sudo apt-get install samba samba-common-bin
+sudo  smbpasswd -a pi
+</pre>
+        
+        <p>Now you should have access the Raspberry Pi via Windows share.</p>
+
+        <h3>Install Raspberry Pi Client software</h3>
+        <p>Compile the project file and copy the executable to the Raspberry Pi under \\&lt;ip address&gt;\iphome\client </p>
+        <p>Open the app.config file and modify the settings. The most important settings are "serverUrl" which tells the client where to post data and "apikey" which
+            is served as authorization token.
+        </p>
+        <p>The API key can be viewed once login to the web site on the <a href="/">home page</a></p>
+        
+        <h3>Configure the Raspberry Pi startup process</h3>
+        <p>Install a utility called screen</p>
+        <pre>
+sudo apt-get install screen
+</pre>
+        <p>To allow any program to startup you need to modify the system boot up configuration file</p>
+        <pre>
+sudo nano /etc/rc.local
+</pre>
+        <p>And append the following line at end of the file just before "exit 0" line.</p>
+        <pre>
+screen -S pi -d -m sudo mono /home/pi/client/HomeAutomationClient.exe
+</pre>
+        
+        <h3>Running headless</h3>
+        <p>Most likely you will run the Raspberry Pi without attaching a keyboard or monitor. In case the power outage, a check disk process will start, and prompt
+            you to repair inconsistency on the SD card possibly in middle of the night. If you would like the check disk to automatically fix the issue, you
+        need to update a file with the following command </p>
+        <pre>
+sudo nano /etc/default/rcS
+</pre>
+        
+        <p>change "FSCKFIX=no" to "FSCKFIX=yes".</p>
+
+        <h3>Done</h3>
+        <p>If all the above steps are completed successfully, you can reboot and see the data sending from the Raspberry Pi to your web site. :)</p>
+        
+        <h3>Trouble shooting</h3>
+        <p>You can attaching to a running client by issuing the following command:</p>
+        <pre>
+sudo screen -r pi
+</pre>
+        <p>Press "Ctrl+a" and "d" to deattach from the screen.</p>
+        <p>You will see full console output. Alternatively, you can sign up LogEntries.com and update key "LOGENTRIES_TOKEN" in the app.config with your own token. In this way, you can monitor
+            the running program on Raspberry Pi remotely in real time.</p>
+
+    </div>
+
+    <div class="col-md-2">
+ 
+    </div>
+</div>

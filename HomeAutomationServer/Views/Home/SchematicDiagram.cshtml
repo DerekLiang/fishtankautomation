@@ -1,0 +1,40 @@
+﻿@{
+    ViewBag.Title = "Schematic Diagram";
+}
+
+
+<div>
+    <h3>
+        Schematic diagram
+    </h3>
+    
+    <p>This is my first Raspberry Pi project. The goal of this project is to use Raspberry Pi to automate my home fish tank (72 gallon) operation. 
+        As the first iteration of this  project, I had implemented 6 sensors, 1 water pump control based on pre-set schedule, and a water pump delay switch.
+    </p>
+    
+    <img src="~/Client/otherSensorDesign.png" style="float:right;" />
+    <p>
+        The sensor electronic circuitry is very sensitive. If one PNP transistor can amplify  the signal 200 times, by chaining  the 2 transistors, we have 40,000 (200*200) signal
+        amplification. It is so sensitive, it can even sense the hand touch the wire. Alternative design can be used if adjustment of sensitivity level is required. (see diagram on the right)
+        
+        The current sensor implementation is highly sensitive and not adjustable, therefore it has some noises in the log (by clicking any sensor in the home page).
+        
+    </p>
+    
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>The switch is used to temporarily  disable the water pump for 2 hours, if pressed. It will overwrite the water pump on/off schedule (see below)</p>
+    <p>The power relay is controlling the water pump on or off. The pump on/off schedule is updated via web service call every minute. So if there is an update on the power
+        pump schedule on the web server, it will be notified. Once the new schedule is updated, the power relay will be following the new on/off schedule.</p>
+    
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+</div>
+
+<div class="jumbotron">
+
+
+    <img src="~/Client/schematic.jpg" />
+
+</div>
